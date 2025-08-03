@@ -1,94 +1,99 @@
 spring:
-  application:
-    name: group-schedule-analyzer
-  
-  datasource:
-    driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/group_scheduler?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul&characterEncoding=UTF-8
-    username: root
-    password: 1234
-    hikari:
-      maximum-pool-size: 20
-      minimum-idle: 5
-      idle-timeout: 300000
-      max-lifetime: 1200000
-      connection-timeout: 20000
-      
-  jpa:
-    hibernate:
-      ddl-auto: update
-    properties:
-      hibernate:
-        dialect: org.hibernate.dialect.MySQLDialect
-        show_sql: false
-        format_sql: true
-        use_sql_comments: true
-        jdbc:
-          batch_size: 20
-        order_inserts: true
-        order_updates: true
-    open-in-view: false
-    
-  cache:
-    type: redis
-    redis:
-      time-to-live: 7200000 # 2시간
-      
-  jackson:
-    serialization:
-      write-dates-as-timestamps: false
-    time-zone: Asia/Seoul
-    
-  servlet:
-    multipart:
-      enabled: true
-      max-file-size: 10MB
-      max-request-size: 10MB
-  data:
-    redis:
-      host: localhost
-      port: 6379
-      timeout: 2000ms
+    application:
+        name: group-schedule-analyzer
 
+    datasource:
+        driver-class-name: com.mysql.cj.jdbc.Driver
+        url: jdbc:mysql://localhost:3306/group_scheduler?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+        username: root
+        password: 1234
+        hikari:
+            maximum-pool-size: 20
+            minimum-idle: 5
+            idle-timeout: 300000
+            max-lifetime: 1200000
+            connection-timeout: 20000
+
+    jpa:
+        hibernate:
+            ddl-auto: update
+        properties:
+            hibernate:
+                dialect: org.hibernate.dialect.MySQLDialect
+                show_sql: false
+                format_sql: true
+                use_sql_comments: true
+                jdbc:
+                    batch_size: 20
+                order_inserts: true
+                order_updates: true
+        open-in-view: false
+
+    cache:
+        type: redis
+        redis:
+            time-to-live: 7200000 # 2시간
+
+    jackson:
+        serialization:
+            write-dates-as-timestamps: false
+        time-zone: Asia/Seoul
+
+    servlet:
+        multipart:
+            enabled: true
+            max-file-size: 10MB
+            max-request-size: 10MB
+    data:
+        redis:
+            host: localhost
+            port: 6379
+            timeout: 2000ms
+
+    devtools:
+        livereload:
+            enabled: true
+        restart:
+            enabled: true
 server:
-  port: 8080
-  servlet:
-    context-path: /
-    encoding:
-      charset: UTF-8
-      enabled: true
-      force: true
+    port: 8080
+    servlet:
+        context-path: /
+        encoding:
+            charset: UTF-8
+            enabled: true
+            force: true
 
 jwt:
-  secret: myVeryLongSecretKeyForJWTTokenGenerationThatShouldBeAtLeast32Characters
-  expiration: 86400 # 24시간 (초 단위)
+    secret: myVeryLongSecretKeyForJWTTokenGenerationThatShouldBeAtLeast32Characters
+    expiration: 86400 # 24시간 (초 단위)
 
 logging:
-  level:
-    com.example.groupscheduler: DEBUG
-    org.springframework.security: DEBUG
-    org.hibernate.SQL: DEBUG
-    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
-  pattern:
-    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
-    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
-  file:
-    name: logs/group-scheduler.log
-    max-size: 10MB
-    max-history: 30
+    level:
+        com.example.groupscheduler: DEBUG
+        org.springframework.security: DEBUG
+        org.hibernate.SQL: DEBUG
+        org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+    pattern:
+        console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+        file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+    file:
+        name: logs/group-scheduler.log
+        max-size: 10MB
+        max-history: 30
 
 management:
-  endpoints:
-    web:
-      exposure:
-        include: health,info,metrics
-  endpoint:
-    health:
-      show-details: when-authorized
-      
+    endpoints:
+        web:
+            exposure:
+                include: health,info,metrics
+    endpoint:
+        health:
+            show-details: when-authorized
+
 springdoc:
-  api-docs:
-    path: /v3/api-docs
-  swagger-ui:
-    path: /swagger-ui.html
-    operations-sorter: method
+    api-docs:
+        path: /v3/api-docs
+    swagger-ui:
+        path: /swagger-ui.html
+        operations-sorter: method
