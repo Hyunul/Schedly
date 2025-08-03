@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Group Schedule Analyzer</title>
+    <link th:href="@{/css/style.css}" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <i class="fas fa-calendar-alt"></i>
+                <span>Group Schedule Analyzer</span>
+            </div>
+            <div class="nav-menu" id="navMenu">
+                <a href="#dashboard" class="nav-link active">대시보드</a>
+                <a href="#groups" class="nav-link">그룹 관리</a>
+                <a href="#schedules" class="nav-link">일정 관리</a>
+                <a href="#analysis" class="nav-link">일정 분석</a>
+                <div class="nav-user">
+                    <span class="user-name" th:text="${user?.name ?: '사용자'}">홍길동</span>
+                    <button class="btn-logout" onclick="logout()">로그아웃</button>
+                </div>
+            </div>
+            <div class="nav-toggle" id="navToggle">
+                <span class="bar"></span>
+                <span class="bar"></span>
+                <span class="bar"></span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Dashboard Section -->
+        <section id="dashboard" class="section active">
+            <div class="container">
+                <h1>대시보드</h1>
+                <div class="dashboard-grid">
+                    <div class="card stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3 th:text="${totalGroups ?: 0}">3</h3>
+                            <p>참여 그룹</p>
+                        </div>
+                    </div>
+                    <div class="card stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-calendar-check"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3 th:text="${todaySchedules ?: 0}">5</h3>
+                            <p>오늘 일정</p>
+                        </div>
+                    </div>
+                    <div class="card stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3 th:text="${upcomingMeetings ?: 0}">2</h3>
+                            <p>예정된 회의</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="recent-activity">
+                    <h2>최근 활동</h2>
+                    <div class="card">
+                        <div class="activity-list">
+                            <div class="activity-item">
+                                <i class="fas fa-user-plus"></i>
+                                <div class="activity-content">
+                                    <p><strong>김철수</strong>님이 "프로젝트 팀" 그룹에 참여했습니다.</p>
+                                    <span class="activity-time">2시간 전</span>
+                                </div>
+                            </div>
+                            <div class="activity-item">
+                                <i class="fas fa-calendar-plus"></i>
+                                <div class="activity-content">
+                                    <p>새로운 일정 "팀 회의"가 생성되었습니다.</p>
+                                    <span class="activity-time">4시간 전</span>
+                                </div>
+                            </div>
+                            <div class="activity-item">
+                                <i class="fas fa-chart-line"></i>
+                                <div class="activity-content">
+                                    <p>"디자인 팀" 그룹의 일정 분석이 완료되었습니다.</p>
+                                    <span class="activity-time">1일 전</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Groups Section -->
+        <section id="groups" class="section">
+            <div class="container">
+                <div class="section-header">
+                    <h1>그룹 관리</h1>
+                    <button class="btn btn-primary" onclick="openCreateGroupModal()">
+                        <i class="fas fa-plus"></i> 새 그룹 생성
+                    </button>
+                </div>
+
+                <div class="groups-grid">
+                    <div class="card group-card" th:each="group : ${groups}">
+                        <div class="group-header">
+                            <h3 th:text="${group.name}">프로젝트 팀</h3>
+                            <div class="group-actions">
+                                <button class="btn-icon" th:onclick="'viewGroup(' + ${group.id} + ')'">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <button class="btn-icon" th:onclick="'editGroup(' + ${group.id} + ')'">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <p class="group-description" th:text="${group.description}">새 프로젝트를 위한 팀</p>
+                        <div class="group-stats">
+                            <div class="stat">
+                                <i class="fas fa-users"></i>
+                                <span th:text="${group.memberCount} + '명'">3명</span>
+                            </div>
+                            <div class="stat">
+                                <i class="fas fa-crown"></i>
+                                <span th:text="${group.ownerName}">홍길동</span>
+                            </div>
+                        </div>
+                        <div class="group-footer">
+                            <span class="created-date" th:text="'생성일: ' + ${#temporals.format(group.createdAt, 'yyyy-MM-dd')}">생성일: 2024-01-01</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Schedules Section -->
+        <section id="schedules" class="section">
+            <div class="container">
+                <div class="section-header">
+                    <h1>일정 관리</h1>
+                    <button class="btn btn-primary" onclick="openCreateScheduleModal()">
+                        <i class="fas fa-plus"></i> 새 일정 추가
+                    </button>
+                </div>
+
+                <div class="schedule-filters">
+                    <div class="filter-group">
+                        <label for="startDate">시작 날짜:</label>
+                        <input type="date" id="startDate" class="form-input">
+                    </div>
+                    <div class="filter-group">
+                        <label for="endDate">종료 날짜:</label>
+                        <input type="date" id="endDate" class="form-input">
+                    </div>
+                    <button class="btn btn-secondary" onclick="filterSchedules()">필터 적용</button>
+                </div>
+
+                <div class="schedule-list">
+                    <div class="card schedule-item" th:each="schedule : ${schedules}">
+                        <div class="schedule-time">
+                            <div class="time-badge" th:text="${schedule.startTime} + '-' + ${schedule.endTime}">09:00-10:30</div>
+                            <div class="date-info" th:text="${#temporals.format(schedule.date, 'M월 d일 (E)')}">1월 15일 (월)</div>
+                        </div>
+                        <div class="schedule-content">
+                            <h3 th:text="${schedule.title}">프로젝트 킥오프 미팅</h3>
+                            <p th:text="${schedule.description}">새 프로젝트에 대한 전체 브리핑</p>
+                            <div class="schedule-type" th:classappend="${schedule.type.toLowerCase()}">
+                                <span th:text="${schedule.type == 'BUSY' ? '바쁨' : (schedule.type == 'AVAILABLE' ? '가능' : '선호')}">바쁨</span>
+                            </div>
+                        </div>
+                        <div class="schedule-actions">
+                            <button class="btn-icon" th:onclick="'editSchedule(' + ${schedule.id} + ')'">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn-icon delete" th:onclick="'deleteSchedule(' + ${schedule.id} + ')'">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Analysis Section -->
+        <section id="analysis" class="section">
+            <div class="container">
+                <h1>일정 분석</h1>
+                
+                <div class="analysis-form card">
+                    <h2>그룹 일정 분석 요청</h2>
+                    <form id="analysisForm">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="groupSelect">그룹 선택:</label>
+                                <select id="groupSelect" class="form-input" required>
+                                    <option value="">그룹을 선택하세요</option>
+                                    <option th:each="group : ${groups}" th:value="${group.id}" th:text="${group.name}">프로젝트 팀</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="targetDate">분석 날짜:</label>
+                                <input type="date" id="targetDate" class="form-input" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="duration">회의 시간 (분):</label>
+                                <input type="number" id="duration" class="form-input" value="60" min="15" max="480" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="preferredStart">선호 시작 시간:</label>
+                                <input type="time" id="preferredStart" class="form-input" value="09:00">
+                            </div>
+                            <div class="form-group">
+                                <label for="preferredEnd">선호 종료 시간:</label>
+                                <input type="time" id="preferredEnd" class="form-input" value="18:00">
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-chart-line"></i> 분석 시작
+                        </button>
+                    </form>
+                </div>
+
+                <div id="analysisResults" class="analysis-results" style="display: none;">
+                    <div class="card">
+                        <h2>분석 결과</h2>
+                        <div class="analysis-summary">
+                            <div class="summary-item">
+                                <strong>그룹:</strong> <span id="resultGroupName"></span>
+                            </div>
+                            <div class="summary-item">
+                                <strong>분석 날짜:</strong> <span id="resultDate"></span>
+                            </div>
+                            <div class="summary-item">
+                                <strong>총 멤버 수:</strong> <span id="resultTotalMembers"></span>명
+                            </div>
+                        </div>
+                        
+                        <div class="recommendations">
+                            <h3>추천 시간대</h3>
+                            <div id="recommendationsList" class="recommendation-list">
+                                <!-- 추천 결과가 여기에 동적으로 추가됩니다 -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Modals -->
+    <div id="createGroupModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>새 그룹 생성</h2>
+                <span class="close" onclick="closeModal('createGroupModal')">&times;</span>
+            </div>
+            <form id="createGroupForm">
+                <div class="form-group">
+                    <label for="groupName">그룹명:</label>
+                    <input type="text" id="groupName" class="form-input" required>
+                </div>
+                <div class="form-group">
+                    <label for="groupDescription">설명:</label>
+                    <textarea id="groupDescription" class="form-input" rows="3"></textarea>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('createGroupModal')">취소</button>
+                    <button type="submit" class="btn btn-primary">생성</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="createScheduleModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>새 일정 추가</h2>
+                <span class="close" onclick="closeModal('createScheduleModal')">&times;</span>
+            </div>
+            <form id="createScheduleForm">
+                <div class="form-group">
+                    <label for="scheduleTitle">제목:</label>
+                    <input type="text" id="scheduleTitle" class="form-input" required>
+                </div>
+                <div class="form-group">
+                    <label for="scheduleDate">날짜:</label>
+                    <input type="date" id="scheduleDate" class="form-input" required>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="scheduleStartTime">시작 시간:</label>
+                        <input type="time" id="scheduleStartTime" class="form-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="scheduleEndTime">종료 시간:</label>
+                        <input type="time" id="scheduleEndTime" class="form-input" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="scheduleType">타입:</label>
+                    <select id="scheduleType" class="form-input" required>
+                        <option value="BUSY">바쁨</option>
+                        <option value="AVAILABLE">가능</option>
+                        <option value="PREFERRED">선호</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="scheduleDescription">설명:</label>
+                    <textarea id="scheduleDescription" class="form-input" rows="3"></textarea>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('createScheduleModal')">취소</button>
+                    <button type="submit" class="btn btn-primary">추가</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script th:src="@{/js/app.js}"></script>
+</body>
+</html>
